@@ -1,0 +1,65 @@
+# Ansible
+*.retry
+.ansible/
+*.log
+
+# Environment files (may contain sensitive data)
+.env
+*.env
+!dot_env.tmpl
+
+# Generated files
+compose.yml
+!compose.yml.j2
+
+# Password files
+*password*.txt
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.sublime-*
+.project
+.settings/
+
+# Python (if using Ansible with Python)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Ansible vault files (if using encryption)
+*.vault
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# OS generated files
+Thumbs.db
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Local testing
+test/
+tests/
+.pytest_cache/
+
+# Documentation build
+docs/_build/
+site/

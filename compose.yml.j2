@@ -1,0 +1,48 @@
+---
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows-${VERSION}
+    env_file:
+      - .env
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+      - /dev/bus/usb
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8016:8006
+      - 3389:3389/tcp
+      - 3389:3389/udp
+    volumes:
+      - windows:/storage
+      - shared:/shared
+    restart: always
+    stop_grace_period: ${STOP_GRACE_PERIOD}
+    networks:
+      windows_net:
+        ipv4_address: {{ dockurr_windows_ip }}
+
+volumes:
+  windows:
+    driver_opts:
+      type: none
+      device: {{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/windows
+      o: bind
+  shared:
+    driver_opts:
+      type: none
+      device: {{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/shared
+      o: bind
+
+networks:
+  windows_net:
+    driver: macvlan
+    driver_opts:
+      parent: {{ dockurr_windows_network_interface }}
+    ipam:
+      driver: default
+      config:
+        - subnet: {{ dockurr_windows_subnet }}
+          gateway: {{ dockurr_windows_gateway }}

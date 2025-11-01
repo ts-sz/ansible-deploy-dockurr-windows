@@ -1,0 +1,159 @@
+---
+- name: Change host variable
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars_prompt:
+    - name: working_host
+      prompt: "Enter the hostname or IP of the target host"
+      private: false
+  tasks:
+    - name: Check if working_host is defined and not empty
+      ansible.builtin.fail:
+        msg: "Error: Please enter a value for 'working_host'."
+      when: working_host is undefined or working_host | trim == ''
+
+    - name: Use hostname from env var working_host
+      ansible.builtin.add_host:
+        name: "{{ working_host }}"
+        groups: working_group
+  tags:
+    - vars
+    - always
+
+- name: Deploy Dockurr Windows
+  hosts: "{{ hosts | default('working_group') }}"
+  gather_facts: true
+  remote_user: root
+  become: true
+  vars:
+    ansible_port: 34522
+    dockurr_windows_remote_dst: /srv/dockers/web/dockurr_windows
+    dockurr_windows_password: "{{ lookup('ansible.builtin.password', '/tmp/dockurr_windows_password.txt') }}"
+  vars_prompt:
+    - name: dockurr_windows_network_interface
+      prompt: "Enter network interface name (e.g., eth0, ens18)"
+      private: false
+      default: eth0
+    
+    - name: dockurr_windows_ip
+      prompt: "Enter IP address for the container"
+      private: false
+      default: 192.168.1.199
+    # System Configuration
+    - name: dockurr_windows_version
+      prompt: "Enter Windows Version (e.g., 10, 11)"
+      private: false
+      default: 11
+
+    - name: dockurr_windows_stop_grace_period
+      prompt: "Enter stop grace period (e.g., 2m, 5m)"
+      private: false
+      default: 2m
+
+    # Hardware Resources
+    - name: dockurr_windows_disk_size
+      prompt: "Enter disk size (e.g., 64G, 128G)"
+      private: false
+      default: 64G
+
+    - name: dockurr_windows_ram_size
+      prompt: "Enter RAM size (e.g., 4G, 8G, 16G)"
+      private: false
+      default: 8G
+
+    - name: dockurr_windows_cpu_cores
+      prompt: "Enter number of CPU cores"
+      private: false
+      default: 4
+
+    # User Credentials
+    - name: dockurr_windows_username
+      prompt: "Enter Windows username"
+      private: false
+      default: sysadmin
+
+    # Localization Settings
+    - name: dockurr_windows_timezone
+      prompt: "Enter timezone (e.g., Europe/Paris, America/New_York)"
+      private: false
+      default: Europe/Paris
+
+    - name: dockurr_windows_language
+      prompt: "Enter language (e.g., English, French, German)"
+      private: false
+      default: English
+
+    - name: dockurr_windows_region
+      prompt: "Enter region (e.g., en-US, fr-FR)"
+      private: false
+      default: en-US
+
+    - name: dockurr_windows_keyboard
+      prompt: "Enter keyboard layout (e.g., en-US, fr-FR)"
+      private: false
+      default: en-US
+
+    # Advanced Options
+    - name: dockurr_windows_qemu_arguments
+      prompt: "Enter additional QEMU arguments (optional) [ex: -device usb-host,vendorid=0x1234,productid=0x1234]"
+      private: false
+      default: null
+
+  tasks:
+    - name: Get network interface facts
+      ansible.builtin.set_fact:
+        dockurr_windows_subnet: "{{ (ansible_facts[dockurr_windows_network_interface]['ipv4']['network'] + '/' + ansible_facts[dockurr_windows_network_interface]['ipv4']['netmask']) | ansible.utils.ipaddr('network/prefix') }}"
+        dockurr_windows_gateway: "{{ ansible_default_ipv4.gateway }}"
+      when: ansible_facts[dockurr_windows_network_interface] is defined
+    
+    - name: Display network configuration
+      ansible.builtin.debug:
+        msg:
+          - "Network Interface: {{ dockurr_windows_network_interface }}"
+          - "Subnet: {{ dockurr_windows_subnet }}"
+          - "Gateway: {{ dockurr_windows_gateway }}"
+          - "Container IP: {{ dockurr_windows_ip }}"
+    
+    - name: Create destinations directory
+      ansible.builtin.file:
+        path: "{{ dockurr_windows_remote_dst }}{{ item }}"
+        state: directory
+        mode: u=rwx,g=rx,o=rx
+      loop:
+        - "{{ dockurr_windows_version }}"
+        - "{{ dockurr_windows_version }}/windows"
+        - "{{ dockurr_windows_version }}/shared"
+    
+    # Create .env file from variables
+    - name: Create .env file
+      ansible.builtin.copy:
+        dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/.env"
+        content: |
+          TZ={{ dockurr_windows_timezone }}
+          VERSION={{ dockurr_windows_version }}
+          STOP_GRACE_PERIOD={{ dockurr_windows_stop_grace_period }}
+          DISK_SIZE={{ dockurr_windows_disk_size }}
+          RAM_SIZE={{ dockurr_windows_ram_size }}
+          CPU_CORES={{ dockurr_windows_cpu_cores }}
+          USERNAME={{ dockurr_windows_username }}
+          PASSWORD={{ dockurr_windows_password }}
+          LANGUAGE={{ dockurr_windows_language }}
+          REGION={{ dockurr_windows_region }}
+          KEYBOARD={{ dockurr_windows_keyboard }}
+          {{ 'ARGUMENTS=' + dockurr_windows_qemu_arguments if dockurr_windows_qemu_arguments is defined and dockurr_windows_qemu_arguments and dockurr_windows_qemu_arguments != 'null' else '' }}
+    
+    # Copy compose file to destination directory
+    - name: Copy compose file to destination directory
+      ansible.builtin.template:
+        src: compose.yml.j2
+        dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/compose.yml"
+      register: compose_file
+    
+    # Deploy Dockurr Windows
+    - name: Deploy Dockurr Windows
+      community.docker.docker_compose_v2:
+        project_src: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}"
+        state: present
+        recreate: always
+      become: true
