@@ -133,11 +133,11 @@
         mode: u=rwx,g=rx,o=rx
 
     # Create a exemple.txt file inside shared folder
-    - name: Create exemple.txt file inside shared folder
+    - name: Create example.txt file inside shared folder
       ansible.builtin.copy:
-        dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/shared/exemple.txt"
+        dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/shared/example.txt"
         content: |
-          This is a exemple.txt file which can be accessed from windows machine trough folder shared linked on desktop
+          This is a example.txt file which can be accessed from windows machine trough folder shared linked on desktop
           
         mode: u=rwx,g=rx,o=rx
     # Create .env file from variables
