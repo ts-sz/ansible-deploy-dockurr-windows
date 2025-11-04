@@ -130,7 +130,8 @@
       ansible.builtin.copy:
         src: "./oem"
         dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/oem"
-        recursive: true
+        mode: u=rwx,g=rx,o=rx
+
     # Create a exemple.txt file inside shared folder
     - name: Create exemple.txt file inside shared folder
       ansible.builtin.copy:
