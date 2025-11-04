@@ -18,6 +18,7 @@ services:
     volumes:
       - windows:/storage
       - shared:/shared
+      - oem:/oem
     restart: always
     stop_grace_period: ${STOP_GRACE_PERIOD}
     networks:
@@ -35,7 +36,11 @@ volumes:
       type: none
       device: {{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/shared
       o: bind
-
+  oem:
+    driver_opts:
+      type: none
+      device: {{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/oem
+      o: bind
 networks:
   windows_net:
     driver: macvlan

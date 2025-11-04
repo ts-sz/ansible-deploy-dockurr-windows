@@ -124,6 +124,7 @@
         - "{{ dockurr_windows_version }}"
         - "{{ dockurr_windows_version }}/windows"
         - "{{ dockurr_windows_version }}/shared"
+        - "{{ dockurr_windows_version }}/oem"
     
     # Create .env file from variables
     - name: Create .env file
