@@ -15,6 +15,8 @@ This project provides an interactive Ansible playbook that deploys a Windows con
 - **Localization Support**: Set timezone, language, region, and keyboard layout
 - **USB Device Passthrough**: Optional QEMU arguments for USB device passthrough
 - **Auto-generated Password**: Secure password generation for Windows user
+- **OEM Customization**: Run custom scripts after Windows installation
+- **Manual Installation**: Optional manual Windows installation mode
 
 ## 📦 Prerequisites
 
@@ -140,6 +142,7 @@ For automated deployments without interactive prompts, use the answers file:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | QEMU Arguments | Additional QEMU arguments (e.g., USB passthrough) | `null` |
+| Manual Installation | Set to `Y` to perform manual Windows installation | Not set (automatic) |
 
 ## 📁 Project Structure
 
@@ -149,6 +152,11 @@ For automated deployments without interactive prompts, use the answers file:
 ├── ansible-answers.yml.example # Example answers file for non-interactive deployment
 ├── compose.yml.j2             # Docker Compose template
 ├── dot_env.tmpl               # Example .env file
+├── oem/                       # OEM customization scripts
+│   ├── install.bat            # Main installation script
+│   ├── chocopacks.ps1         # Chocolatey package installer
+│   ├── packages-default.choco.config # Chocolatey packages list
+│   └── *.ps1                  # Various Windows customization scripts
 ├── README.md                  # This file
 └── .gitignore                # Git ignore rules
 ```
@@ -185,6 +193,57 @@ vars:
   ansible_port: 34522  # Change this
 ```
 
+### Manual Installation
+
+By default, Windows installation is automatic. To perform a manual installation, set the `MANUAL` environment variable:
+
+```yaml
+environment:
+  MANUAL: "Y"
+```
+
+**Note**: It's recommended to stick to the automatic installation, as it adjusts various settings to prevent common issues when running Windows inside a virtual environment. Use manual installation at your own risk.
+
+### OEM Customization Scripts
+
+The `oem/` folder contains scripts that run after Windows installation completes. The playbook automatically copies this folder to the container, where it will be mounted at `C:\OEM`.
+
+**How it works:**
+
+1. The `oem/` folder is copied to the container during deployment
+2. During Windows installation, the folder is mounted at `C:\OEM`
+3. The `install.bat` script is executed automatically after installation completes
+4. `install.bat` runs all PowerShell scripts in sequence to customize Windows
+
+**Included customization scripts:**
+
+- `remove-default-apps-v2.ps1` - Removes unwanted Windows apps
+- `disable-telemetry.ps1` - Disables Windows telemetry
+- `disable-cortana.ps1` - Disables Cortana
+- `disable-xbox.ps1` - Disables Xbox features
+- `chocopacks.ps1` - Installs Chocolatey packages from `.choco.config` files
+- And many more customization scripts...
+
+**Adding your own scripts:**
+
+1. Place your custom scripts in the `oem/` folder
+2. Edit `oem/install.bat` to include your script in the execution sequence
+3. Redeploy the playbook to copy the updated folder
+
+**Example - Adding software installation:**
+
+Create a file `oem/packages-custom.choco.config`:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<packages>
+  <package id="googlechrome" />
+  <package id="vscode" />
+  <package id="git" />
+</packages>
+```
+
+The `chocopacks.ps1` script will automatically detect and install packages from all `.choco.config` files in the folder.
+
 ## 🌐 Networking
 
 This deployment uses **macvlan** networking, which gives the container its own IP address on your network. This allows:
@@ -209,41 +268,12 @@ The playbook performs the following steps:
 1. Prompts for target host and configuration
 2. Gathers network facts from the target host
 3. Creates deployment directories (`/srv/dockers/web/dockurr_windows<version>/`)
-4. Generates `.env` file with configuration
-5. Deploys `compose.yml` from template
-6. Starts the Windows container with Docker Compose
-
-## 🐛 Troubleshooting
-
-### KVM not available
-```bash
-# Check if KVM is available
-ls -la /dev/kvm
-
-# Load KVM module
-sudo modprobe kvm
-sudo modprobe kvm_intel  # or kvm_amd for AMD processors
-```
-
-### Network issues
-- Ensure the network interface name is correct
-- Verify the container IP is available on your network
-- Check that macvlan is supported on your network interface
-
-### Container won't start
-```bash
-# Check Docker logs
-docker logs windows-<version>
-
-# Verify Docker Compose configuration
-docker compose -f /srv/dockers/web/dockurr_windows<version>/compose.yml config
-```
-
-### Ansible collection missing
-```bash
-# Install required collections
-ansible-galaxy collection install community.docker ansible.utils
-```
+4. Copies OEM customization folder to the deployment directory
+5. Creates example files in the shared folder
+6. Generates `.env` file with configuration
+7. Deploys `compose.yml` from template
+8. Starts the Windows container with Docker Compose
+9. Windows installs automatically and runs OEM scripts at the end
 
 ## 📚 Additional Resources
 

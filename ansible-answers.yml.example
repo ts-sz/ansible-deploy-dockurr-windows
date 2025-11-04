@@ -88,3 +88,6 @@ dockurr_windows_keyboard: "en-US"
 
 # Override the remote user (default: root)
 # remote_user: root
+
+# Manual Installation
+dockurr_windows_manual: "N"

@@ -129,7 +129,7 @@
     - name: Copy OEM folder to container
       ansible.builtin.copy:
         src: "./oem"
-        dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/oem"
+        dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/"
         mode: u=rwx,g=rx,o=rx
 
     # Create a exemple.txt file inside shared folder
@@ -157,6 +157,7 @@
           REGION={{ dockurr_windows_region }}
           KEYBOARD={{ dockurr_windows_keyboard }}
           {{ 'ARGUMENTS=' + dockurr_windows_qemu_arguments if dockurr_windows_qemu_arguments is defined and dockurr_windows_qemu_arguments and dockurr_windows_qemu_arguments != 'null' else '' }}
+          MANUAL={{ dockurr_windows_manual }}
         mode: u=rwx,g=rx,o=rx
     
     # Copy compose file to destination directory
