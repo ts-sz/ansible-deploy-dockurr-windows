@@ -125,7 +125,20 @@
         - "{{ dockurr_windows_version }}/windows"
         - "{{ dockurr_windows_version }}/shared"
         - "{{ dockurr_windows_version }}/oem"
-    
+    # Copy Folder OEM to container
+    - name: Copy OEM folder to container
+      ansible.builtin.copy:
+        src: "./oem"
+        dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/oem"
+        recursive: true
+    # Create a exemple.txt file inside shared folder
+    - name: Create exemple.txt file inside shared folder
+      ansible.builtin.copy:
+        dest: "{{ dockurr_windows_remote_dst }}{{ dockurr_windows_version }}/shared/exemple.txt"
+        content: |
+          This is a exemple.txt file which can be accessed from windows machine trough folder shared linked on desktop
+          
+        mode: u=rwx,g=rx,o=rx
     # Create .env file from variables
     - name: Create .env file
       ansible.builtin.copy:
@@ -143,6 +156,7 @@
           REGION={{ dockurr_windows_region }}
           KEYBOARD={{ dockurr_windows_keyboard }}
           {{ 'ARGUMENTS=' + dockurr_windows_qemu_arguments if dockurr_windows_qemu_arguments is defined and dockurr_windows_qemu_arguments and dockurr_windows_qemu_arguments != 'null' else '' }}
+        mode: u=rwx,g=rx,o=rx
     
     # Copy compose file to destination directory
     - name: Copy compose file to destination directory
