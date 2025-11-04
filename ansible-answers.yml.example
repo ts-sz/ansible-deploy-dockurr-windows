@@ -1,0 +1,90 @@
+---
+# Ansible Answers File for Dockurr Windows Deployment
+# This file contains all the variables needed to run the playbook non-interactively
+# Usage: 
+#   1. Copy this file: cp ansible-answers.yml.example ansible-answers.yml
+#   2. Edit ansible-answers.yml with your configuration
+#   3. Run: ansible-playbook ansible-playbook.yml -e @ansible-answers.yml
+
+# ============================================================================
+# TARGET HOST CONFIGURATION
+# ============================================================================
+# The hostname or IP address of the target host where Windows will be deployed
+working_host: "192.168.1.100"
+
+# ============================================================================
+# NETWORK CONFIGURATION
+# ============================================================================
+# Network interface name on the target host (e.g., eth0, ens18, enp0s3)
+dockurr_windows_network_interface: "eth0"
+
+# Static IP address for the Windows container (must be available on your network)
+dockurr_windows_ip: "192.168.1.199"
+
+# ============================================================================
+# SYSTEM CONFIGURATION
+# ============================================================================
+# Windows version to install (10 or 11)
+dockurr_windows_version: "11"
+
+# Time to wait before force-stopping the container (e.g., 2m, 5m, 10m)
+dockurr_windows_stop_grace_period: "2m"
+
+# ============================================================================
+# HARDWARE RESOURCES
+# ============================================================================
+# Virtual disk size (e.g., 32G, 64G, 128G, 256G)
+dockurr_windows_disk_size: "64G"
+
+# RAM allocation (e.g., 2G, 4G, 8G, 16G, 32G)
+dockurr_windows_ram_size: "8G"
+
+# Number of CPU cores to allocate (e.g., 2, 4, 6, 8)
+dockurr_windows_cpu_cores: "4"
+
+# ============================================================================
+# USER CREDENTIALS
+# ============================================================================
+# Windows username for the default user account
+dockurr_windows_username: "sysadmin"
+
+# Note: Password is auto-generated and stored in /tmp/dockurr_windows_password.txt
+# You can override it by uncommenting and setting the following variable:
+# dockurr_windows_password: "YourSecurePassword123!"
+
+# ============================================================================
+# LOCALIZATION SETTINGS
+# ============================================================================
+# System timezone (e.g., Europe/Paris, America/New_York, Asia/Tokyo)
+dockurr_windows_timezone: "Europe/Paris"
+
+# Display language (e.g., English, French, German, Spanish)
+dockurr_windows_language: "English"
+
+# Regional format (e.g., en-US, fr-FR, de-DE, es-ES)
+dockurr_windows_region: "en-US"
+
+# Keyboard layout (e.g., en-US, fr-FR, de-DE, es-ES)
+dockurr_windows_keyboard: "en-US"
+
+# ============================================================================
+# ADVANCED OPTIONS (Optional)
+# ============================================================================
+# Additional QEMU arguments for advanced configuration
+# Example for USB device passthrough:
+# dockurr_windows_qemu_arguments: "-device usb-host,vendorid=0x1234,productid=0x5678"
+# 
+# Leave commented out or set to empty string if not needed:
+# dockurr_windows_qemu_arguments: ""
+
+# ============================================================================
+# ADDITIONAL ANSIBLE VARIABLES (Optional)
+# ============================================================================
+# Override the default SSH port (default: 34522)
+# ansible_port: 34522
+
+# Override the deployment directory (default: /srv/dockers/web/dockurr_windows)
+# dockurr_windows_remote_dst: "/srv/dockers/web/dockurr_windows"
+
+# Override the remote user (default: root)
+# remote_user: root

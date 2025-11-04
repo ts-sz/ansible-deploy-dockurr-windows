@@ -2,6 +2,8 @@
 *.retry
 .ansible/
 *.log
+ansible-answers*.yml
+!ansible-answers.yml.example
 
 # Environment files (may contain sensitive data)
 .env

@@ -58,6 +58,41 @@ This project provides an interactive Ansible playbook that deploys a Windows con
    - Web interface: `http://<container-ip>:8006`
    - RDP: `<container-ip>:3389`
 
+## 🤖 Non-Interactive Deployment
+
+For automated deployments without interactive prompts, use the answers file:
+
+1. **Create or edit the answers file**
+   ```bash
+   cp ansible-answers.yml.example ansible-answers.yml
+   # Edit ansible-answers.yml with your configuration
+   ```
+
+2. **Run the playbook with the answers file**
+   ```bash
+   ansible-playbook ansible-playbook.yml -e @ansible-answers.yml
+   ```
+
+3. **Example answers file** (`ansible-answers.yml`):
+   ```yaml
+   ---
+   working_host: "192.168.1.100"
+   dockurr_windows_network_interface: "eth0"
+   dockurr_windows_ip: "192.168.1.199"
+   dockurr_windows_version: "11"
+   dockurr_windows_stop_grace_period: "2m"
+   dockurr_windows_disk_size: "64G"
+   dockurr_windows_ram_size: "8G"
+   dockurr_windows_cpu_cores: "4"
+   dockurr_windows_username: "sysadmin"
+   dockurr_windows_timezone: "Europe/Paris"
+   dockurr_windows_language: "English"
+   dockurr_windows_region: "en-US"
+   dockurr_windows_keyboard: "en-US"
+   ```
+
+**Note**: When using the answers file, all `vars_prompt` values are provided via the `-e` flag, bypassing interactive prompts. See the included `ansible-answers.yml.example` for all available options.
+
 ## ⚙️ Configuration Options
 
 ### Network Configuration
@@ -110,11 +145,12 @@ This project provides an interactive Ansible playbook that deploys a Windows con
 
 ```
 .
-├── ansible-playbook.yml    # Main Ansible playbook
-├── compose.yml.j2          # Docker Compose template
-├── dot_env.tmpl            # Example .env file
-├── README.md               # This file
-└── .gitignore             # Git ignore rules
+├── ansible-playbook.yml       # Main Ansible playbook
+├── ansible-answers.yml.example # Example answers file for non-interactive deployment
+├── compose.yml.j2             # Docker Compose template
+├── dot_env.tmpl               # Example .env file
+├── README.md                  # This file
+└── .gitignore                # Git ignore rules
 ```
 
 ## 🔧 Customization
